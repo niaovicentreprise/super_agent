@@ -3,7 +3,7 @@ import { runWorkflow } from '@/lib/workflow';
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, workflowId, zapierToken } = await request.json();
+    const { message, workflowId, zapierToken, openaiKey } = await request.json();
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
@@ -12,14 +12,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!workflowId || !zapierToken) {
+    if (!workflowId || !zapierToken || !openaiKey) {
       return NextResponse.json(
-        { error: 'Missing workflowId or zapierToken' },
+        { error: 'One of the tokens are missing' },
         { status: 400 }
       );
     }
 
-    const result = await runWorkflow({ input_as_text: message, workflowId, zapierToken });
+    const result = await runWorkflow({ input_as_text: message, workflowId, zapierToken, openaiKey });
 
     return NextResponse.json({ 
       response: result?.response || 'No response received' 

@@ -1,16 +1,21 @@
 import { hostedMcpTool, Agent, AgentInputItem, Runner, withTrace } from "@openai/agents";
 import { z } from "zod";
+import { setDefaultOpenAIKey } from '@openai/agents';
 
 type WorkflowInput = { 
   input_as_text: string
   workflowId: string;
   zapierToken: string;
+  openaiKey: string
 };
 
 const conversationHistory: AgentInputItem[] = [];
 
 // Main code entrypoint
 export const runWorkflow = async (workflow: WorkflowInput) => {
+  console.log(workflow.openaiKey)
+  setDefaultOpenAIKey(workflow.openaiKey)
+
   const mcp = hostedMcpTool({
     serverLabel: "zapier",
     allowedTools: [
@@ -35,7 +40,7 @@ export const runWorkflow = async (workflow: WorkflowInput) => {
       temperature: 1,
       topP: 1,
       maxTokens: 2048,
-      store: true
+      store: true,
     }
   });
 
@@ -168,7 +173,7 @@ export const runWorkflow = async (workflow: WorkflowInput) => {
         __trace_source__: "agent-builder",
         // wf_690f5f9f0ab881909a827b61c1d28ec60413bfe0cd29e362
         workflow_id: workflow.workflowId
-      }
+      },
     });
     
     const orchestrateurResultTemp = await runner.run(

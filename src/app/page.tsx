@@ -9,6 +9,7 @@ export default function Home() {
   const [showModal, setShowModal] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [orgId, setOrgId] = useState("");
+  const [openKey, setOpenKey] = useState("");
 
   useEffect(() => {
     // Wait until client-side mount
@@ -20,8 +21,9 @@ export default function Home() {
 
     const storedApiKey = sessionStorage.getItem("WORKFLOW_ID");
     const storedOrgId = sessionStorage.getItem("ZAPIER_TOKEN");
+    const storedOpenAI = sessionStorage.getItem("OPENAI_API_KEY");
 
-    if (storedApiKey && storedOrgId) {
+    if (storedApiKey && storedOrgId && storedOpenAI) {
       setIsReady(true);
     } else {
       setShowModal(true);
@@ -34,6 +36,7 @@ export default function Home() {
     // Save values
     sessionStorage.setItem("WORKFLOW_ID", apiKey);
     sessionStorage.setItem("ZAPIER_TOKEN", orgId);
+    sessionStorage.setItem("OPENAI_API_KEY", openKey);
 
     // Hide modal and show app
     setShowModal(false);
@@ -52,6 +55,15 @@ export default function Home() {
             className="bg-black text-white p-8 rounded-lg shadow-lg space-y-6 w-[500px] max-w-full"
           >
             <h2 className="text-2xl font-bold text-center">Enter Config Values</h2>
+
+            <input
+              type="text"
+              placeholder="Enter OpenAI API Key"
+              value={openKey}
+              onChange={(e) => setOpenKey(e.target.value)}
+              className="w-full border border-white bg-black text-white p-3 rounded placeholder-white focus:outline-none focus:ring-2 focus:ring-white"
+              required
+            />
 
             <input
               type="text"

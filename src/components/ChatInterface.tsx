@@ -124,6 +124,7 @@ export default function ChatInterface() {
 
     const workflowId = sessionStorage.getItem("WORKFLOW_ID") ?? "";
     const zapierToken = sessionStorage.getItem("ZAPIER_TOKEN") ?? "";
+    const openaiKey = sessionStorage.getItem("OPENAI_API_KEY") ?? "";
 
     try {
       const response = await fetch('/api/chat', {
@@ -131,7 +132,7 @@ export default function ChatInterface() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: userMessage.content, workflowId, zapierToken }),
+        body: JSON.stringify({ message: userMessage.content, workflowId, zapierToken, openaiKey }),
       });
 
       if (!response.ok) {
