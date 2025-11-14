@@ -1,10 +1,4 @@
 {
   "installCommand": "bun install",
-  "builds": [
-    {
-        "installCommand":"bun install",
-        "src": "package.json",
-        "use": "@vercel/next"
-    }
-  ]
+  "buildCommand": "bun run build"
 }
