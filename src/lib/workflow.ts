@@ -1,4 +1,4 @@
-import { hostedMcpTool, Agent, AgentInputItem, Runner, withTrace } from "@openai/agents";
+import { hostedMcpTool, Agent, AgentInputItem, Runner } from "@openai/agents";
 import { z } from "zod";
 import { setDefaultOpenAIKey } from '@openai/agents';
 
@@ -165,123 +165,120 @@ export const runWorkflow = async (workflow: WorkflowInput) => {
     ]
   });
 
+  const runner = new Runner({
+    traceMetadata: {
+      __trace_source__: "agent-builder",
+      workflow_id: workflow.workflowId
+    },
+  });
 
-  return await withTrace("orchestrateur 4", async () => {
-    const runner = new Runner({
-      traceMetadata: {
-        __trace_source__: "agent-builder",
-        workflow_id: workflow.workflowId
-      },
-    });
-    
-    const orchestrateurResultTemp = await runner.run(
-      orchestrateur,
+  const orchestrateurResultTemp = await runner.run(
+    orchestrateur,
+    [
+      ...conversationHistory
+    ]
+  );
+  conversationHistory.push(...orchestrateurResultTemp.newItems.map((item) => item.rawItem));
+
+  if (!orchestrateurResultTemp.finalOutput) {
+      throw new Error("Agent result is undefined");
+  }
+
+  const orchestrateurResult = {
+    output_text: JSON.stringify(orchestrateurResultTemp.finalOutput),
+    output_parsed: orchestrateurResultTemp.finalOutput
+  };
+
+  let finalResult = "";
+
+  if (orchestrateurResult.output_parsed.category == "linkedin") {
+    const linkedinPublisherResultTemp = await runner.run(
+      linkedinPublisher,
       [
         ...conversationHistory
       ]
     );
-    conversationHistory.push(...orchestrateurResultTemp.newItems.map((item) => item.rawItem));
+    conversationHistory.push(...linkedinPublisherResultTemp.newItems.map((item) => item.rawItem));
 
-    if (!orchestrateurResultTemp.finalOutput) {
+    if (!linkedinPublisherResultTemp.finalOutput) {
         throw new Error("Agent result is undefined");
     }
 
-    const orchestrateurResult = {
-      output_text: JSON.stringify(orchestrateurResultTemp.finalOutput),
-      output_parsed: orchestrateurResultTemp.finalOutput
+    const linkedinPublisherResult = {
+      output_text: linkedinPublisherResultTemp.finalOutput ?? ""
     };
-    
-    let finalResult = "";
-    
-    if (orchestrateurResult.output_parsed.category == "linkedin") {
-      const linkedinPublisherResultTemp = await runner.run(
-        linkedinPublisher,
-        [
-          ...conversationHistory
-        ]
-      );
-      conversationHistory.push(...linkedinPublisherResultTemp.newItems.map((item) => item.rawItem));
+    finalResult = linkedinPublisherResult.output_text;
+  } else if (orchestrateurResult.output_parsed.category == "scrapping") {
+    const scrapperResultTemp = await runner.run(
+      scrapper,
+      [
+        ...conversationHistory
+      ]
+    );
+    conversationHistory.push(...scrapperResultTemp.newItems.map((item) => item.rawItem));
 
-      if (!linkedinPublisherResultTemp.finalOutput) {
-          throw new Error("Agent result is undefined");
-      }
-
-      const linkedinPublisherResult = {
-        output_text: linkedinPublisherResultTemp.finalOutput ?? ""
-      };
-      finalResult = linkedinPublisherResult.output_text;
-    } else if (orchestrateurResult.output_parsed.category == "scrapping") {
-      const scrapperResultTemp = await runner.run(
-        scrapper,
-        [
-          ...conversationHistory
-        ]
-      );
-      conversationHistory.push(...scrapperResultTemp.newItems.map((item) => item.rawItem));
-
-      if (!scrapperResultTemp.finalOutput) {
-          throw new Error("Agent result is undefined");
-      }
-
-      const scrapperResult = {
-        output_text: scrapperResultTemp.finalOutput ?? ""
-      };
-      finalResult = scrapperResult.output_text;
-    } else if (orchestrateurResult.output_parsed.category == "images") {
-      const designerResultTemp = await runner.run(
-        designer,
-        [
-          ...conversationHistory
-        ]
-      );
-      conversationHistory.push(...designerResultTemp.newItems.map((item) => item.rawItem));
-
-      if (!designerResultTemp.finalOutput) {
-          throw new Error("Agent result is undefined");
-      }
-
-      const designerResult = {
-        output_text: designerResultTemp.finalOutput ?? ""
-      };
-      finalResult = designerResult.output_text;
-    } else if (orchestrateurResult.output_parsed.category == "podcast") {
-      const podcastResultTemp = await runner.run(
-        podcast,
-        [
-          ...conversationHistory
-        ]
-      );
-      conversationHistory.push(...podcastResultTemp.newItems.map((item) => item.rawItem));
-
-      if (!podcastResultTemp.finalOutput) {
-          throw new Error("Agent result is undefined");
-      }
-
-      const podcastResult = {
-        output_text: podcastResultTemp.finalOutput ?? ""
-      };
-      finalResult = podcastResult.output_text;
-    } else if (orchestrateurResult.output_parsed.category == "general") {
-      const generalisteResultTemp = await runner.run(
-        generaliste,
-        [
-          ...conversationHistory
-        ]
-      );
-      conversationHistory.push(...generalisteResultTemp.newItems.map((item) => item.rawItem));
-
-      if (!generalisteResultTemp.finalOutput) {
-          throw new Error("Agent result is undefined");
-      }
-
-      const generalisteResult = {
-        output_text: generalisteResultTemp.finalOutput ?? ""
-      };
-      finalResult = generalisteResult.output_text;
-    } else {
-      finalResult = orchestrateurResult.output_text;
+    if (!scrapperResultTemp.finalOutput) {
+        throw new Error("Agent result is undefined");
     }
-    
-    return { response: finalResult };
-  });
+
+    const scrapperResult = {
+      output_text: scrapperResultTemp.finalOutput ?? ""
+    };
+    finalResult = scrapperResult.output_text;
+  } else if (orchestrateurResult.output_parsed.category == "images") {
+    const designerResultTemp = await runner.run(
+      designer,
+      [
+        ...conversationHistory
+      ]
+    );
+    conversationHistory.push(...designerResultTemp.newItems.map((item) => item.rawItem));
+
+    if (!designerResultTemp.finalOutput) {
+        throw new Error("Agent result is undefined");
+    }
+
+    const designerResult = {
+      output_text: designerResultTemp.finalOutput ?? ""
+    };
+    finalResult = designerResult.output_text;
+  } else if (orchestrateurResult.output_parsed.category == "podcast") {
+    const podcastResultTemp = await runner.run(
+      podcast,
+      [
+        ...conversationHistory
+      ]
+    );
+    conversationHistory.push(...podcastResultTemp.newItems.map((item) => item.rawItem));
+
+    if (!podcastResultTemp.finalOutput) {
+        throw new Error("Agent result is undefined");
+    }
+
+    const podcastResult = {
+      output_text: podcastResultTemp.finalOutput ?? ""
+    };
+    finalResult = podcastResult.output_text;
+  } else if (orchestrateurResult.output_parsed.category == "general") {
+    const generalisteResultTemp = await runner.run(
+      generaliste,
+      [
+        ...conversationHistory
+      ]
+    );
+    conversationHistory.push(...generalisteResultTemp.newItems.map((item) => item.rawItem));
+
+    if (!generalisteResultTemp.finalOutput) {
+        throw new Error("Agent result is undefined");
+    }
+
+    const generalisteResult = {
+      output_text: generalisteResultTemp.finalOutput ?? ""
+    };
+    finalResult = generalisteResult.output_text;
+  } else {
+    finalResult = orchestrateurResult.output_text;
+  }
+
+  return { response: finalResult };
 }
