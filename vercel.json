@@ -2,8 +2,9 @@
   "installCommand": "bun install",
   "builds": [
     {
-      "src": "package.json",
-      "use": "@vercel/next"
+        "installCommand":"bun install",
+        "src": "package.json",
+        "use": "@vercel/next"
     }
   ]
 }
