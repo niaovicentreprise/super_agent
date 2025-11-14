@@ -23,7 +23,6 @@ export const runWorkflow = async (workflow: WorkflowInput) => {
       "edit_tools",
       "linkedin_create_share_update"
     ],
-    // MDJmMTAxODktN2RhOC00MzlmLWE0YzYtMGY5ZWM4NTcwODMyOmQ1ODEzZmQzLTVkYTEtNGVhMS1hZDI0LTYwMWY4ZDBkYzQ2NQ==
     authorization: workflow.zapierToken,
     requireApproval: "never",
     serverUrl: "https://mcp.zapier.com/api/mcp/mcp"
@@ -171,7 +170,6 @@ export const runWorkflow = async (workflow: WorkflowInput) => {
     const runner = new Runner({
       traceMetadata: {
         __trace_source__: "agent-builder",
-        // wf_690f5f9f0ab881909a827b61c1d28ec60413bfe0cd29e362
         workflow_id: workflow.workflowId
       },
     });
